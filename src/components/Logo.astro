@@ -1,0 +1,13 @@
+---
+import logo from '../assets/logo.svg';
+import { cn } from '../lib/cn';
+
+interface Props {
+  alt?: string;
+  class?: string;
+}
+
+const { alt = 'Jonathan Lauwers Logo', class: className } = Astro.props;
+---
+
+<img src={logo.src} alt={alt} class={cn('h-10 w-auto', className)} />

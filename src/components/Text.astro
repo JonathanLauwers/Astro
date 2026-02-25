@@ -1,0 +1,49 @@
+---
+import { cn } from '../lib/cn';
+
+type TextType = 'h1' | 'h2' | 'h3' | 'h4' | 'body' | 'link' | 'small' | 'menu' | 'breadcrumb';
+type TextTag = 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'span' | 'a' | 'li' | 'label';
+
+interface Props {
+  type?: TextType;
+  tag?: TextTag;
+  class?: string;
+}
+
+const tagByType: Record<TextType, TextTag> = {
+  h1: 'h1',
+  h2: 'h2',
+  h3: 'h3',
+  h4: 'h4',
+  body: 'p',
+  link: 'a',
+  small: 'span',
+  menu: 'span',
+  breadcrumb: 'span',
+};
+
+const classByType: Record<TextType, string> = {
+  h1: 'text-h1',
+  h2: 'text-h2',
+  h3: 'text-h3',
+  h4: 'text-h4',
+  body: 'text-body',
+  link: 'text-link',
+  small: 'text-small',
+  menu: 'text-menu',
+  breadcrumb: 'text-breadcrumb',
+};
+
+const {
+  type = 'body',
+  tag,
+  class: className,
+  ...rest
+} = Astro.props as Props & Record<string, unknown>;
+const Tag = (tag ?? tagByType[type]) as TextTag;
+const classes = cn(classByType[type], className);
+---
+
+<Tag class={classes} {...rest}>
+  <slot />
+</Tag>

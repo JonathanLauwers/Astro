@@ -1,0 +1,42 @@
+---
+import RichText from './RichText.astro';
+import Section from './Section.astro';
+import SectionDuplex from './SectionDuplex.astro';
+
+type ContentTypeId =
+  | 'section'
+  | 'sectionDuplex'
+  | 'contentRichText'
+  | 'contentCallToAction'
+  | 'contentList'
+  | 'contentGallery'
+  | 'contentCarousel'
+  | 'testimonial'
+  | 'contentForm'
+  | 'contentImage'
+  | 'contentMediaGrid';
+
+type ContentModelMapperProps = {
+  data?: any;
+  additionalProps?: Record<string, unknown>;
+  className?: string;
+};
+
+const { data, additionalProps = {}, className } = Astro.props as ContentModelMapperProps;
+
+const contentType = data?.sys?.contentType?.sys?.id as ContentTypeId | undefined;
+const modelProps = { ...additionalProps, data, className };
+console.log(modelProps);
+---
+
+{
+  contentType === 'section' ? (
+    <Section {...modelProps} />
+  ) : contentType === 'sectionDuplex' ? (
+    <SectionDuplex {...modelProps} />
+  ) : contentType === 'contentRichText' ? (
+    <RichText {...modelProps} />
+  ) : (
+    <div>{`Cannot find mapper for ${contentType ?? 'unknown'} content type`}</div>
+  )
+}

@@ -1,0 +1,54 @@
+---
+import type { TypeSectionDuplex } from '../../lib/__generated__';
+import { cn } from '../../lib/cn';
+import SectionHeader from '../SectionHeader.astro';
+import Text from '../Text.astro';
+import Mapper from './Mapper.astro';
+import Section from './Section.astro';
+
+type ContentfulSectionDuplexProps = {
+  data?: TypeSectionDuplex<'WITHOUT_UNRESOLVABLE_LINKS'>;
+  className?: string;
+};
+
+const { data, className } = Astro.props as ContentfulSectionDuplexProps;
+const fields = data?.fields;
+
+const gapClasses = {
+  none: 'gap-0',
+  small: 'gap-4',
+  medium: 'gap-6',
+  large: 'gap-10',
+} as const;
+---
+
+{
+  fields && (
+    <section class={cn('flex flex-col', gapClasses[fields.gap], className)}>
+      {fields.title && <SectionHeader title={fields.title} position={fields.titlePosition} />}
+
+      <div class="grid grid-cols-1 items-center gap-6 md:grid-cols-2">
+        <div>
+          {fields.sectionA && (
+            <Mapper
+              data={fields.sectionA}
+              components={{
+                section: Section,
+              }}
+            />
+          )}
+        </div>
+        <div>
+          {fields.sectionB && (
+            <Mapper
+              data={fields.sectionB}
+              components={{
+                section: Section,
+              }}
+            />
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}

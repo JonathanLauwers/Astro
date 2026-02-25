@@ -1,0 +1,39 @@
+---
+import Logo from './Logo.astro';
+import Text from './Text.astro';
+
+type NavLink = {
+  label: string;
+  href: string;
+};
+
+interface Props {
+  brand?: string;
+  links?: NavLink[];
+}
+
+const {
+  brand = 'Jonathan Lauwers',
+  links = [
+    { label: 'Home', href: '/' },
+    { label: 'Experiences', href: '/experiences' },
+    { label: 'Contact', href: '/contact' },
+  ],
+} = Astro.props;
+---
+
+<nav class="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4">
+  <a href="/"><Logo alt={brand} /></a>
+
+  <ul class="flex items-center gap-6">
+    {
+      links.map((link) => (
+        <li>
+          <Text type="menu" tag="a" href={link.href}>
+            {link.label}
+          </Text>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

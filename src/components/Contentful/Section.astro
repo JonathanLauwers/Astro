@@ -1,0 +1,22 @@
+---
+import type { TypeSection, TypeSectionFields, TypeSectionSkeleton } from '../../lib/__generated__';
+import { cn } from '../../lib/cn';
+import Text from '../Text.astro';
+import Mapper from './Mapper.astro';
+import SectionHeader from '../SectionHeader.astro';
+
+type ContentfulSectionProps = {
+  data: TypeSection<'WITHOUT_UNRESOLVABLE_LINKS'>;
+  className?: string;
+};
+
+const { data, className } = Astro.props as ContentfulSectionProps;
+const { content, gap, title, titlePosition } = data.fields;
+---
+
+<section class={cn('flex flex-col gap-4 py-20', className)}>
+  {title && <SectionHeader title={title} position={titlePosition} />}
+  <div>
+    {content?.map((data) => <Mapper data={data} key={data.sys.id} />)}
+  </div>
+</section>

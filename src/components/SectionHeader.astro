@@ -1,0 +1,47 @@
+---
+import Text from './Text.astro';
+
+interface Props {
+  class?: string;
+  title: string;
+  position?: 'start' | 'end';
+}
+
+const { class: className = '', title, position = 'start' } = Astro.props;
+const charAmount = title?.length || 5;
+
+// Similar idea to: font-size = viewportWidth / (charAmount + 1)
+// Wrapped in clamp so it stays usable on small/large screens.
+const titleFontSize = `clamp(2rem, calc(100vw / ${charAmount + 1}), 12rem)`;
+---
+
+<div
+  class:list={[
+    'relative flex w-screen ml-[calc((100vw-100%)/-2)]',
+    position === 'end' ? 'justify-end' : 'justify-start',
+  ]}
+>
+  {
+    position === 'end' && (
+      <div class="absolute left-0 top-0 h-2 w-1/4 bg-black md:h-4">
+        <div class="absolute left-full top-0 h-2 w-4 -translate-x-1/2 -skew-x-45 bg-black md:h-4 md:w-8" />
+      </div>
+    )
+  }
+
+  <Text
+    type="h2"
+    class:list={['uppercase leading-[0.9]', className]}
+    style={`font-size: ${titleFontSize};`}
+  >
+    {title}
+  </Text>
+
+  {
+    position === 'start' && (
+      <div class="absolute right-0 top-0 h-2 w-1/4 bg-black md:h-4">
+        <div class="absolute top-0 h-2 w-4 -skew-x-45 bg-black md:h-4 md:w-8 right-[calc(100%-2rem)] md:right-[calc(100%-2rem)]" />
+      </div>
+    )
+  }
+</div>

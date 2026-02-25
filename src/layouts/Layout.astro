@@ -1,27 +1,17 @@
 ---
 import '../styles/global.css';
+import NavBar from '../components/NavBar.astro';
+import Footer from '../components/Footer.astro';
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+<main class="min-h-screen flex flex-col">
+  <header class="fixed top-0 left-0 z-50 w-full">
+    <NavBar />
+  </header>
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+  <div class="mx-auto w-full max-w-7xl flex-1 px-4 pt-24">
+    <slot />
+  </div>
+
+  <Footer />
+</main>

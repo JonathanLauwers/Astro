@@ -1,0 +1,50 @@
+---
+import instagram from '../assets/instagram.svg';
+import linkedin from '../assets/linkedIn.svg';
+import Logo from './Logo.astro';
+import Text from './Text.astro';
+
+type FooterLink = {
+  label?: string;
+  href?: string;
+  src: string;
+};
+
+interface Props {
+  links?: FooterLink[];
+}
+
+const year = new Date().getFullYear();
+const {
+  links = [
+    { src: instagram.src, href: 'https://www.instagram.com/jonathan_lauwers/' },
+    { src: linkedin.src, href: 'https://www.linkedin.com/in/jonathan-lauwers-95991611a/' },
+    { label: 'Privacy Policy', href: '/privacy-policy' },
+  ],
+} = Astro.props;
+---
+
+<footer class="mt-auto border-t border-slate-200">
+  <div
+    class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between"
+  >
+    <a href="/"><Logo /></a>
+
+    <ul class="flex items-center gap-4">
+      {
+        links.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              rel="noreferrer"
+              target={link.href.startsWith('http') ? '_blank' : undefined}
+            >
+              {link.src && <img src={link.src} alt={link.label} class="size-4" />}
+              {link.label && <Text class="font-bold">{link.label}</Text>}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</footer>

@@ -1,0 +1,68 @@
+---
+import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
+import { BLOCKS, INLINES, type Document, type TopLevelBlock } from '@contentful/rich-text-types';
+import type { TypeContentRichText } from '../../lib/__generated__';
+import { cn } from '../../lib/cn';
+
+type Gap = 'none' | 'small' | 'medium' | 'large';
+
+type ContentfulRichTextProps = {
+  data?: TypeContentRichText<'WITHOUT_UNRESOLVABLE_LINKS'>;
+  className?: string;
+  gap?: Gap;
+};
+
+const { data, className, gap = 'medium' } = Astro.props as ContentfulRichTextProps;
+
+const fields = data?.fields;
+const copy = fields?.copy as Document | undefined;
+
+const gapClassBySize: Record<Gap, string> = {
+  none: 'gap-0',
+  small: 'gap-4',
+  medium: 'gap-6',
+  large: 'gap-10',
+};
+
+const readPlainText = (node: { content?: Array<{ value?: string }> }) =>
+  node.content?.map((item) => item.value ?? '').join('') ?? '';
+
+const richTextHtml = copy
+  ? documentToHtmlString(copy, {
+      renderNode: {
+        [INLINES.HYPERLINK]: (node) => {
+          const href = node.data.uri ?? '#';
+          const label = readPlainText(node);
+          return `<a href="${href}" rel="noopener noreferrer">${label}</a>`;
+        },
+        [BLOCKS.EMBEDDED_ENTRY]: (node) => {
+          const contentType = node.data?.target?.sys?.contentType?.sys?.id ?? 'unknown';
+          return `<div data-embedded-entry="${contentType}"></div>`;
+        },
+        [BLOCKS.EMBEDDED_ENTRY_INLINE]: (node) => {
+          const contentType = node.data?.target?.sys?.contentType?.sys?.id ?? 'unknown';
+          return `<span data-embedded-entry-inline="${contentType}"></span>`;
+        },
+      },
+    })
+  : '';
+
+const embeddedEntries =
+  copy?.content
+    ?.filter((node): node is TopLevelBlock => node.nodeType === BLOCKS.EMBEDDED_ENTRY)
+    .map((node) => node.data?.target)
+    .filter(Boolean) ?? [];
+---
+
+{
+  copy && (
+    <section class={cn('flex flex-col', gapClassBySize[gap], className)}>
+      <article class="rich-text" set:html={richTextHtml} />
+      {embeddedEntries.length > 0 && (
+        <p class="text-small">
+          Embedded entries detected. Map them through `Mapper.astro` where this component is used.
+        </p>
+      )}
+    </section>
+  )
+}
