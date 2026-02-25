@@ -26,7 +26,6 @@ const { data, additionalProps = {}, className } = Astro.props as ContentModelMap
 
 const contentType = data?.sys?.contentType?.sys?.id as ContentTypeId | undefined;
 const modelProps = { ...additionalProps, data, className };
-console.log(modelProps);
 ---
 
 {
