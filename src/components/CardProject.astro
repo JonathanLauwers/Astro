@@ -2,70 +2,31 @@
 import Image from './Contentful/Image.astro';
 import Text from './Text.astro';
 
-interface Sys {
-  id?: string;
-}
-
-interface ContentfulAssetFile {
-  url?: string;
-}
-
-interface ContentfulAssetFields {
+interface ProjectLogo {
   title?: string;
-  file?: ContentfulAssetFile;
+  src?: string;
 }
 
-interface ContentfulAsset {
-  fields?: ContentfulAssetFields;
-}
-
-interface TechnologyFields {
-  logo?: ContentfulAsset;
-}
-
-interface Technology {
-  sys?: Sys;
-  fields?: TechnologyFields;
-}
-
-interface ProjectTheme {
-  value?: string;
-}
-
-interface ProjectFields {
-  logo?: any;
-  theme?: ProjectTheme;
+interface ProjectData {
+  logo?: unknown;
+  theme?: string;
   name?: string;
-  technologies?: Technology[];
-}
-
-interface Project {
-  fields?: ProjectFields;
-}
-
-interface ContentfulPage {
-  fields?: {
-    slug?: string;
-  };
-  sys?: Sys;
+  logos?: ProjectLogo[];
 }
 
 interface Props {
-  project: Project;
-  destination: ContentfulPage;
+  project: ProjectData;
+  href: string;
+  class?: string;
 }
 
-const { project, destination, class: className } = Astro.props;
-const { logo, theme, name, technologies = [] } = (project?.fields ?? {}) as ProjectFields;
-
-// Replace this with your real slug/path helper if needed.
-const href = destination?.fields?.slug ? `/${destination.fields.slug}` : '#';
-const backgroundColor = theme?.value ?? '#000000';
+const { project, href, class: className } = Astro.props as Props;
+const { logo, theme, name, logos = [] } = project;
 ---
 
 <a
   href={href}
-  style={`background-color:${backgroundColor};`}
+  style={`background-color:${theme};`}
   class:list={[
     'relative aspect-square min-h-[220px] group flex h-full w-full items-center justify-center p-6 no-underline',
     className,
@@ -81,25 +42,29 @@ const backgroundColor = theme?.value ?? '#000000';
     )
   }
 
-  {
-    technologies.length > 0 && (
-      <div class="absolute inset-0 flex flex-col items-center justify-between bg-black/60 p-8 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+  <div
+    class="absolute inset-0 flex flex-col items-center justify-between bg-black/60 p-8 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+  >
+    {
+      logos.length > 0 && (
         <div class="absolute bottom-4 left-2 right-2 flex flex-wrap justify-center gap-3">
-          {technologies.map(({ fields, sys }) => {
+          {logos.map((logoItem) => {
+            const src = logoItem?.src;
+            if (!src) return null;
             return (
-              <Image
-                data={fields?.logo}
-                alt={fields?.title ?? 'Technology'}
+              <img
+                src={src.startsWith('http') ? src : `https:${src}`}
+                alt={logoItem.title ?? src}
                 width="24"
                 height="24"
-                class:list="h-6 w-6 object-contain"
+                class="h-6 w-6 object-contain"
                 loading="lazy"
-                key={sys?.id}
+                key={src}
               />
             );
           })}
         </div>
-      </div>
-    )
-  }
+      )
+    }
+  </div>
 </a>

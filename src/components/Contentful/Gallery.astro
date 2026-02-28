@@ -1,76 +1,55 @@
 ---
+import type { TypeContentGallery } from '../../lib/__generated__';
 import { cn } from '../../lib/cn';
 import CardProject from '../CardProject.astro';
 import GalleryComponent from '../Gallery.astro';
 
-interface PageProjectFields {
-  project?: any;
-}
-
-interface PageProject {
-  sys?: { id?: string };
-  fields?: PageProjectFields;
-}
-
-interface ContentGalleryFields {
-  media?: PageProject[];
-}
-
 interface Props {
-  data?: {
-    fields?: ContentGalleryFields;
-  };
+  data?: TypeContentGallery<'WITHOUT_UNRESOLVABLE_LINKS'>;
   class?: string;
   experiencesRoute?: string;
 }
 
-const { data, class: className = '', experiencesRoute = '/experiences' } = Astro.props;
+const { data, class: className = '' } = Astro.props as Props;
 
 if (!data?.fields) return null;
 
 const media = data.fields.media ?? [];
-
-// React version showed 5 items on mobile and 7 on desktop.
-// In Astro, render up to 7 and hide items 6-7 on mobile with classes.
 const itemsToUse = media.slice(0, 7);
-const galleryCards = itemsToUse.map((pageProject, index) => ({
-  destination: pageProject,
-  project: pageProject?.fields?.project,
-  hiddenOnMobile: index >= 5,
-  id: pageProject?.sys?.id ?? `project-${index}`,
-}));
-
-console.log(galleryCards);
 ---
 
 <GalleryComponent class={cn('', className)}>
   {
-    galleryCards.map((card) => (
-      <CardProject
-        key={card.id}
-        class={card.hiddenOnMobile && 'hidden md:flex'}
-        destination={card.destination}
-        project={card.project}
-      />
-    ))
+    itemsToUse.map((item, index) => {
+      const page = item.fields;
+      const project = page?.project?.fields;
+
+      return (
+        <CardProject
+          class={index >= 5 ? 'hidden md:flex' : undefined}
+          href={page?.slug ? `/${page.slug}` : '#'}
+          project={{
+            logo: project?.logo,
+            theme: project?.theme?.value ?? '#000000',
+            name: project?.name,
+            logos: project?.technologies?.map((tech) => ({
+              title: tech?.fields?.name,
+              src:
+                tech?.fields?.logo?.fields?.mobile?.fields?.file?.url ??
+                tech?.fields?.logo?.fields?.tablet?.fields?.file?.url ??
+                tech?.fields?.logo?.fields?.desktop?.fields?.file?.url ??
+                '',
+            })),
+          }}
+        />
+      );
+    })
   }
 
-  <!-- "See more" tile -->
-  <a
-    href={experiencesRoute}
-    class="flex min-h-[220px] items-center justify-center gap-3 bg-black p-6 text-center transition hover:bg-slate-900"
-  >
-    <span class="text-2xl font-semibold uppercase text-white">See more</span>
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      class="h-6 w-6 text-white"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      stroke-width="2"
-      aria-hidden="true"
-    >
-      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
-    </svg>
-  </a>
+  <CardProject
+    key="see-more"
+    href="/experiences"
+    project={{ name: 'SEE MORE', theme: '#000000' }}
+    class="*:text-white"
+  />
 </GalleryComponent>
