@@ -1,4 +1,6 @@
 ---
+import ContentList from './ContentList.astro';
+import Gallery from './Gallery.astro';
 import RichText from './RichText.astro';
 import Section from './Section.astro';
 import SectionDuplex from './SectionDuplex.astro';
@@ -35,6 +37,10 @@ const modelProps = { ...additionalProps, data, className };
     <SectionDuplex {...modelProps} />
   ) : contentType === 'contentRichText' ? (
     <RichText {...modelProps} />
+  ) : contentType === 'contentList' ? (
+    <ContentList {...modelProps} />
+  ) : contentType === 'contentGallery' ? (
+    <Gallery {...modelProps} />
   ) : (
     <div>{`Cannot find mapper for ${contentType ?? 'unknown'} content type`}</div>
   )

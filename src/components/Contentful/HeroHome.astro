@@ -1,0 +1,45 @@
+---
+import Image from './Image.astro';
+
+interface HeroFields {
+  media?: {
+    fields?: {
+      desktop?: { fields?: unknown };
+      tablet?: { fields?: unknown };
+      mobile?: { fields?: unknown };
+    };
+  };
+}
+
+interface Props {
+  class?: string;
+  data?: {
+    fields?: HeroFields;
+  };
+}
+
+const { class: className = '', data } = Astro.props as Props;
+const media = data?.fields?.media;
+
+if (!media?.fields) {
+  return null;
+}
+---
+
+<header
+  class:list={[
+    'relative flex items-center pt-24',
+    'bg-[radial-gradient(100%_302.76%_at_0%_50%,#c07747_0%,#efa247_100%)]',
+    className,
+  ]}
+>
+  <div class="mx-auto w-full max-w-[1750px]">
+    <Image
+      data={media}
+      class="mx-auto h-auto! w-full object-contain"
+      width={1750}
+      height={900}
+      priority={true}
+    />
+  </div>
+</header>

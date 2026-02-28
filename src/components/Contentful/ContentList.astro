@@ -1,0 +1,82 @@
+---
+import Accordion from '../Accordion.astro';
+import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
+import type { Document } from '@contentful/rich-text-types';
+
+interface ContentfulRichTextFields {
+  copy?: Document;
+}
+
+interface ContentListItemFields {
+  title?: string;
+  content?: {
+    fields?: ContentfulRichTextFields;
+  };
+  media?: any;
+}
+
+interface ContentListItem {
+  fields?: ContentListItemFields;
+}
+
+interface ContentListFields {
+  items?: ContentListItem[];
+}
+
+interface Props {
+  data?: {
+    fields?: ContentListFields;
+  };
+  class?: string;
+}
+
+const { data, class: className = '' } = Astro.props as Props;
+
+if (!data?.fields) {
+  return null;
+}
+
+const items = data.fields.items ?? [];
+
+const toAbsoluteAssetUrl = (url?: string) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  return `https:${url}`;
+};
+
+const escapeHtml = (value: string) =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+
+const accordionItems = items.map((item) => {
+  const { content, title, media } = (item.fields ?? {}) as ContentListItemFields;
+  const copyHtml = content?.fields?.copy ? documentToHtmlString(content.fields.copy) : '';
+
+  const desktopAsset = media?.fields?.desktop?.fields;
+  const tabletAsset = media?.fields?.tablet?.fields ?? desktopAsset;
+  const mobileAsset = media?.fields?.mobile?.fields ?? tabletAsset;
+
+  const mediaUrl = toAbsoluteAssetUrl(
+    desktopAsset?.file?.url ?? tabletAsset?.file?.url ?? mobileAsset?.file?.url
+  );
+  const mediaAlt = desktopAsset?.title ?? tabletAsset?.title ?? mobileAsset?.title ?? '';
+
+  const mediaHtml = mediaUrl
+    ? `<img src="${escapeHtml(mediaUrl)}" alt="${escapeHtml(mediaAlt)}" loading="lazy" />`
+    : '';
+
+  return {
+    title: title ?? '',
+    content: copyHtml,
+    media: mediaHtml,
+  };
+});
+---
+
+<div class={className}>
+  <Accordion items={accordionItems} />
+</div>

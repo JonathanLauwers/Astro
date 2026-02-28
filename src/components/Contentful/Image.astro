@@ -1,0 +1,80 @@
+---
+interface ContentfulFile {
+  url?: string;
+}
+
+interface ContentfulAssetFields {
+  title?: string;
+  file?: ContentfulFile;
+}
+
+interface ContentfulAsset {
+  fields?: ContentfulAssetFields;
+}
+
+interface ImageDataFields {
+  desktop?: ContentfulAsset;
+  tablet?: ContentfulAsset;
+  mobile?: ContentfulAsset;
+}
+
+interface Props {
+  data?: {
+    fields?: ImageDataFields;
+  };
+  class?: string;
+  width?: number;
+  height?: number;
+  priority?: boolean;
+  maxHeight?: number;
+}
+
+const {
+  data,
+  class: className = '',
+  width = 400,
+  height = 400,
+  priority = false,
+  maxHeight,
+} = Astro.props as Props;
+
+if (!data?.fields) return null;
+
+const { desktop, tablet, mobile } = data.fields;
+const desktopFields = desktop?.fields || {};
+const tabletFields = tablet?.fields || desktopFields;
+const mobileFields = mobile?.fields || tabletFields;
+
+const maxHeightStyle = maxHeight ? `max-height:${maxHeight}px;` : '';
+const loading = priority ? 'eager' : 'lazy';
+const fetchPriority = priority ? 'high' : 'auto';
+const toAbsoluteUrl = (url?: string) => {
+  if (!url) return undefined;
+  return url.startsWith('http') ? url : `https:${url}`;
+};
+
+const mobileUrl = toAbsoluteUrl(mobileFields.file?.url);
+const tabletUrl = toAbsoluteUrl(tabletFields.file?.url) ?? mobileUrl;
+const desktopUrl = toAbsoluteUrl(desktopFields.file?.url) ?? tabletUrl;
+const fallbackUrl = desktopUrl ?? tabletUrl ?? mobileUrl;
+const altText = desktopFields.title ?? tabletFields.title ?? mobileFields.title ?? '';
+---
+
+{
+  fallbackUrl && (
+    <picture>
+      {desktopUrl && <source media="(min-width: 1024px)" srcset={desktopUrl} />}
+      {tabletUrl && <source media="(min-width: 768px)" srcset={tabletUrl} />}
+      <img
+        alt={altText}
+        src={fallbackUrl}
+        width={width}
+        height={height}
+        loading={loading}
+        fetchpriority={fetchPriority}
+        class:list={[className || 'object-contain']}
+        style={maxHeightStyle}
+      />
+    </picture>
+  )
+}

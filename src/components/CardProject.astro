@@ -1,0 +1,105 @@
+---
+import Image from './Contentful/Image.astro';
+import Text from './Text.astro';
+
+interface Sys {
+  id?: string;
+}
+
+interface ContentfulAssetFile {
+  url?: string;
+}
+
+interface ContentfulAssetFields {
+  title?: string;
+  file?: ContentfulAssetFile;
+}
+
+interface ContentfulAsset {
+  fields?: ContentfulAssetFields;
+}
+
+interface TechnologyFields {
+  logo?: ContentfulAsset;
+}
+
+interface Technology {
+  sys?: Sys;
+  fields?: TechnologyFields;
+}
+
+interface ProjectTheme {
+  value?: string;
+}
+
+interface ProjectFields {
+  logo?: any;
+  theme?: ProjectTheme;
+  name?: string;
+  technologies?: Technology[];
+}
+
+interface Project {
+  fields?: ProjectFields;
+}
+
+interface ContentfulPage {
+  fields?: {
+    slug?: string;
+  };
+  sys?: Sys;
+}
+
+interface Props {
+  project: Project;
+  destination: ContentfulPage;
+}
+
+const { project, destination, class: className } = Astro.props;
+const { logo, theme, name, technologies = [] } = (project?.fields ?? {}) as ProjectFields;
+
+// Replace this with your real slug/path helper if needed.
+const href = destination?.fields?.slug ? `/${destination.fields.slug}` : '#';
+const backgroundColor = theme?.value ?? '#000000';
+---
+
+<a
+  href={href}
+  style={`background-color:${backgroundColor};`}
+  class:list={[
+    'relative aspect-square min-h-[220px] group flex h-full w-full items-center justify-center p-6 no-underline',
+    className,
+  ]}
+>
+  {
+    logo ? (
+      <Image data={logo} class="mx-auto max-h-[100px] max-w-[60%]" />
+    ) : (
+      <Text type="h3" class="text-center">
+        {name}
+      </Text>
+    )
+  }
+
+  {
+    technologies.length > 0 && (
+      <div class="absolute inset-0 flex flex-col items-center justify-between bg-black/60 p-8 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <div class="absolute bottom-4 left-2 right-2 flex flex-wrap justify-center gap-3">
+          {technologies.map(({ fields, sys }) => {
+            return (
+              <Image
+                data={fields?.logo}
+                alt={fields?.title ?? 'Technology'}
+                width="24"
+                height="24"
+                class:list="h-6 w-6 object-contain"
+                loading="lazy"
+                key={sys?.id}
+              />
+            );
+          })}
+        </div>
+      </div>
+    )
+  }
+</a>

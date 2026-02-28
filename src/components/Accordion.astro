@@ -1,0 +1,108 @@
+---
+interface AccordionItem {
+  title: string;
+  // HTML string (or plain text) for the media area
+  media?: string;
+  // HTML string (or plain text) for the content area
+  content?: string;
+}
+
+interface Props {
+  class?: string;
+  items: AccordionItem[];
+}
+
+const { class: className = '', items = [] } = Astro.props;
+---
+
+<div class:list={['flex flex-col gap-4 md:flex-row md:gap-16', className]} data-accordion>
+  <!-- Media column -->
+  <div
+    class="flex min-h-[300px] max-w-[75%] items-center justify-center self-center md:h-[400px] md:min-w-[40%] md:w-[40%]"
+  >
+    {
+      items.map((item, index) => (
+        <div
+          data-media-panel
+          data-index={index}
+          class:list={[
+            'w-full transition-all duration-200',
+            index === 0 ? 'opacity-100 translate-y-0' : 'hidden opacity-0 -translate-y-2',
+          ]}
+        >
+          <div
+            class="h-full w-full [&_img]:h-full [&_img]:w-full [&_img]:object-contain"
+            set:html={item.media ?? ''}
+          />
+        </div>
+      ))
+    }
+  </div>
+
+  <!-- Accordion column -->
+  <div class="flex w-full flex-col justify-center gap-6">
+    {
+      items.map((item, index) => (
+        <div class="border-b border-slate-200 pb-4">
+          <button
+            type="button"
+            data-trigger
+            data-index={index}
+            class="flex w-full items-center justify-between text-left text-lg font-semibold text-slate-900"
+            aria-expanded={index === 0 ? 'true' : 'false'}
+          >
+            <span>{item.title}</span>
+            <span class="text-slate-500">+</span>
+          </button>
+
+          <div
+            data-content-panel
+            data-index={index}
+            class:list={[index === 0 ? 'mt-3 block text-slate-700' : 'mt-3 hidden text-slate-700']}
+            set:html={item.content ?? ''}
+          />
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('[data-accordion]').forEach((root) => {
+    const triggers = root.querySelectorAll('[data-trigger]');
+    const mediaPanels = root.querySelectorAll('[data-media-panel]');
+    const contentPanels = root.querySelectorAll('[data-content-panel]');
+
+    const setActive = (activeIndex) => {
+      triggers.forEach((btn) => {
+        const i = Number(btn.getAttribute('data-index'));
+        const expanded = i === activeIndex;
+        btn.setAttribute('aria-expanded', String(expanded));
+      });
+
+      mediaPanels.forEach((panel) => {
+        const i = Number(panel.getAttribute('data-index'));
+        if (i === activeIndex) {
+          panel.classList.remove('hidden', 'opacity-0', '-translate-y-2');
+          panel.classList.add('opacity-100', 'translate-y-0');
+        } else {
+          panel.classList.add('hidden', 'opacity-0', '-translate-y-2');
+          panel.classList.remove('opacity-100', 'translate-y-0');
+        }
+      });
+
+      contentPanels.forEach((panel) => {
+        const i = Number(panel.getAttribute('data-index'));
+        panel.classList.toggle('hidden', i !== activeIndex);
+        panel.classList.toggle('block', i === activeIndex);
+      });
+    };
+
+    triggers.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.getAttribute('data-index'));
+        setActive(i);
+      });
+    });
+  });
+</script>
