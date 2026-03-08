@@ -1,0 +1,80 @@
+---
+import ProjectInfo from '../ProjectInfo.astro';
+import Text from '../Text.astro';
+import Image from './Image.astro';
+import RichText from './RichText.astro';
+
+interface ProjectFields {
+  name?: string;
+  description?: any;
+  roles?: any[];
+  technologies?: any[];
+  website?: string;
+}
+
+interface ProjectData {
+  fields?: ProjectFields;
+}
+
+interface Props {
+  data?: ProjectData;
+  class?: string;
+}
+
+const { data, class: className = '' } = Astro.props;
+
+if (!data?.fields) {
+  return null;
+}
+
+const { name, description, roles, technologies, website } = data.fields;
+const roleLabel = `Role${roles.length > 1 ? 's' : ''}`;
+const roleNames = roles
+  .map((role) => role?.fields?.name)
+  .filter(Boolean)
+  .join(', ');
+---
+
+<div class:list={['grid grid-cols-1 gap-x-8 gap-y-8 md:grid-cols-4', className]}>
+  <div class="flex flex-col gap-8">
+    <div class="flex flex-col gap-3">
+      <Text type="small" class="font-bold uppercase">Client</Text>
+      <Text type="small">{name}</Text>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <Text type="small" class="font-bold uppercase">{roleLabel}</Text>
+      <Text type="small">{roleNames}</Text>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <Text type="small" class="font-bold uppercase">Technologies</Text>
+
+      {
+        technologies.map((technology) => {
+          const techName = technology?.fields?.name;
+          const logo = technology?.fields?.logo;
+
+          return (
+            <div class="flex items-center gap-2" key={technology?.sys?.id}>
+              <Image data={logo} class="size-4" />
+              <Text type="small">{techName}</Text>
+            </div>
+          );
+        })
+      }
+    </div>
+
+    {
+      website && (
+        <div class="flex flex-col gap-3">
+          <Text type="link" href={website} target="_blank" rel="noopener noreferrer">
+            Website
+          </Text>
+        </div>
+      )
+    }
+  </div>
+
+  <RichText class="md:col-span-3" data={description} />
+</div>

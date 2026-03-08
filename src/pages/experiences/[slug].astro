@@ -1,0 +1,30 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { contentfulClient } from '../../lib/contentful';
+import type { TypePageProjectSkeleton } from '../../lib/__generated__/TypePageProject';
+import SEO from '../../components/SEO.astro';
+import Mapper from '../../components/Contentful/Mapper.astro';
+import ProjectSummary from '../../components/Contentful/ProjectSummary.astro';
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<TypePageProjectSkeleton>({
+    content_type: 'pageProject',
+    include: 6,
+  });
+
+  return entries.items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: { page: item },
+  }));
+}
+
+const { page } = Astro.props;
+const fields = page.fields;
+console.log('fields', fields);
+---
+
+<SEO title={fields.title} description={fields.description} />
+<Layout>
+  <ProjectSummary data={fields.project} />
+  {fields.content?.map((item) => <Mapper data={item} key={item.sys.id} />)}
+</Layout>

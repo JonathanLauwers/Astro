@@ -9,11 +9,11 @@ type Gap = 'none' | 'small' | 'medium' | 'large';
 
 type ContentfulRichTextProps = {
   data?: TypeContentRichText<'WITHOUT_UNRESOLVABLE_LINKS'>;
-  className?: string;
+  class?: string;
   gap?: Gap;
 };
 
-const { data, className, gap = 'medium' } = Astro.props as ContentfulRichTextProps;
+const { data, class: className, gap = 'medium' } = Astro.props as ContentfulRichTextProps;
 
 const fields = data?.fields;
 const copy = fields?.copy as Document | undefined;

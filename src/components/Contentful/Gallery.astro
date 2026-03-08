@@ -27,7 +27,7 @@ const itemsToUse = media.slice(0, 7);
       return (
         <CardProject
           class={index >= 5 ? 'hidden md:flex' : undefined}
-          href={page?.slug ? `/${page.slug}` : '#'}
+          href={page?.slug ? `/experiences/${page.slug}` : '#'}
           project={{
             logo: project?.logo,
             theme: project?.theme?.value ?? '#000000',
