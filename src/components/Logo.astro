@@ -1,5 +1,4 @@
 ---
-import logo from '../assets/logo.svg';
 import { cn } from '../lib/cn';
 
 interface Props {
@@ -7,7 +6,21 @@ interface Props {
   class?: string;
 }
 
-const { alt = 'Jonathan Lauwers Logo', class: className } = Astro.props;
+const { alt = 'Jonathan Lauwers Logo', class: className } = Astro.props as Props;
 ---
 
-<img src={logo.src} alt={alt} class={cn('h-10 w-auto', className)} />
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 429 448"
+  role="img"
+  aria-label={alt}
+  class={cn('h-10 w-auto', className)}
+>
+  <title>{alt}</title>
+  <path
+    fill="currentColor"
+    d="m105.9 305.3l-0.2-302.3h28.3c0 0 0.1 323.8 0 324.6-15.3 102.3-103.7 91.7-103.7 91.7l-25.6-32.4c106.7 17.2 101.2-81.6 101.2-81.6z"
+  ></path>
+  <path fill="currentColor" d="m243 3h28v355h-28z"></path>
+  <path fill="currentColor" d="m119 414l305-1v30h-332z"></path>
+</svg>

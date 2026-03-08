@@ -1,6 +1,7 @@
 ---
 import Logo from './Logo.astro';
 import Text from './Text.astro';
+import { Header, HeaderActions, HeaderContent } from './ui/header';
 
 type NavLink = {
   label: string;
@@ -22,18 +23,50 @@ const {
 } = Astro.props;
 ---
 
-<nav class="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4">
-  <a href="/"><Logo alt={brand} /></a>
+<Header class="fixed top-0 right-0 left-0 z-50 transition-colors">
+  <HeaderContent data-nav-root>
+    <a href="/" class="*:transition-colors" data-nav-logo><Logo alt={brand} /></a>
+    <HeaderActions class="ml-auto">
+      {
+        links.map((link) => (
+          <li class="list-none">
+            <Text type="menu" tag="a" href={link.href} data-nav-link class="transition-colors">
+              {link.label}
+            </Text>
+          </li>
+        ))
+      }
+    </HeaderActions>
+  </HeaderContent>
+</Header>
 
-  <ul class="flex items-center gap-6">
-    {
-      links.map((link) => (
-        <li>
-          <Text type="menu" tag="a" href={link.href}>
-            {link.label}
-          </Text>
-        </li>
-      ))
-    }
-  </ul>
-</nav>
+<script>
+  const SCROLL_THRESHOLD = 50;
+
+  document.querySelectorAll('[data-nav-root]').forEach((root) => {
+    const header = root.closest('[data-slot="header"]');
+    const links = root.querySelectorAll('[data-nav-link]');
+    const logo = root.querySelector('[data-nav-logo]');
+
+    console.log('logo', logo);
+    if (!header) return;
+
+    const updateStyles = () => {
+      const isScrolled = window.scrollY > SCROLL_THRESHOLD;
+
+      header.classList.toggle('bg-white', isScrolled);
+      header.classList.toggle('bg-transparent', !isScrolled);
+
+      links.forEach((link) => {
+        link.classList.toggle('text-primary', isScrolled);
+        link.classList.toggle('text-white', !isScrolled);
+      });
+
+      logo.classList.toggle('*:text-primary', isScrolled);
+      logo.classList.toggle('*:text-white', !isScrolled);
+    };
+
+    updateStyles();
+    window.addEventListener('scroll', updateStyles, { passive: true });
+  });
+</script>
