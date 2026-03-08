@@ -33,14 +33,24 @@ const { copy = '' } = (rteCopy?.fields || {}) as ContentRichTextFields;
 const { company = '', role = '', name = '' } = (author?.fields || {}) as AuthorFields;
 ---
 
-<div class:list={['relative mx-auto flex w-full max-w-[900px] flex-col gap-3 py-10', className]}>
-  <Icon name="carbon:quotes" class="absolute right-full top-8 md:top-0 size-24 text-orange-500" />
+<div
+  class:list={[
+    'mx-auto flex w-full max-w-[1200px] flex-col gap-3 pt-20 pb-10 md:px-24 md:pt-10',
+    className,
+  ]}
+>
+  <div class="relative">
+    <Icon
+      name="carbon:quotes"
+      class="absolute bottom-full left-0 size-24 text-orange-500 md:-top-10 md:right-full md:bottom-auto md:left-auto"
+    />
 
-  <RichTextPlain
-    copy={copy}
-    class="text-center text-xl font-light italic leading-relaxed md:text-3xl"
-  />
+    <RichTextPlain
+      copy={copy}
+      class="text-center text-xl leading-relaxed font-light italic md:text-3xl"
+    />
+  </div>
 
-  <Text tag="p" class="text-xl font-semibold self-end">{name}</Text>
-  <Text tag="p" class="text-sm text-slate-700 self-end">{role} @ {company}</Text>
+  <Text tag="p" class="self-end text-xl font-semibold">{name}</Text>
+  <Text tag="p" class="self-end text-sm text-slate-700">{role} @ {company}</Text>
 </div>

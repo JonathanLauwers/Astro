@@ -1,7 +1,8 @@
 ---
-import Accordion from '../Accordion.astro';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import type { Document } from '@contentful/rich-text-types';
+import Text from '../Text.astro';
 
 interface ContentfulRichTextFields {
   copy?: Document;
@@ -78,5 +79,77 @@ const accordionItems = items.map((item) => {
 ---
 
 <div class={className}>
-  <Accordion items={accordionItems} />
+  <div class="flex flex-col gap-4 md:flex-row md:gap-16" data-content-list-accordion>
+    <div
+      class="relative flex min-h-[300px] max-w-[75%] items-center justify-center self-center overflow-hidden md:h-[400px] md:w-[40%] md:min-w-[40%]"
+    >
+      {
+        accordionItems.map((item, index) => (
+          <div
+            data-media-panel
+            data-index={index}
+            class:list={[
+              'absolute inset-0 w-full transition-all duration-300 ease-out will-change-transform',
+              index === 0
+                ? 'pointer-events-auto translate-y-0 opacity-100'
+                : 'pointer-events-none translate-y-2 opacity-0',
+            ]}
+          >
+            <div
+              class="h-full w-full [&_img]:h-full [&_img]:w-full [&_img]:object-contain"
+              set:html={item.media ?? ''}
+            />
+          </div>
+        ))
+      }
+    </div>
+
+    <Accordion class="flex w-full flex-col justify-center gap-6">
+      {
+        accordionItems.map((item, index) => (
+          <AccordionItem data-accordion-item data-index={index} open={index === 0}>
+            <AccordionTrigger>
+              <Text type="h3">{item.title}</Text>
+            </AccordionTrigger>
+            <AccordionContent class="pb-4">
+              <div set:html={item.content ?? ''} />
+            </AccordionContent>
+          </AccordionItem>
+        ))
+      }
+    </Accordion>
+  </div>
 </div>
+
+<script>
+  document.querySelectorAll('[data-content-list-accordion]').forEach((root) => {
+    const items = root.querySelectorAll('[data-accordion-item]');
+    const mediaPanels = root.querySelectorAll('[data-media-panel]');
+
+    const setActive = (activeIndex) => {
+      mediaPanels.forEach((panel) => {
+        const i = Number(panel.getAttribute('data-index'));
+        if (i === activeIndex) {
+          panel.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+          panel.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+        } else {
+          panel.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+          panel.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+        }
+      });
+    };
+
+    items.forEach((item, index) => {
+      const trigger = item.querySelector('[data-slot="accordion-trigger"]');
+      if (!trigger) return;
+
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+
+        items.forEach((other) => other.removeAttribute('open'));
+        item.setAttribute('open', '');
+        setActive(index);
+      });
+    });
+  });
+</script>

@@ -3,6 +3,7 @@ import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import { BLOCKS, INLINES, type Document, type TopLevelBlock } from '@contentful/rich-text-types';
 import type { TypeContentRichText } from '../../lib/__generated__';
 import { cn } from '../../lib/cn';
+import Text from '../Text.astro';
 
 type Gap = 'none' | 'small' | 'medium' | 'large';
 
@@ -33,7 +34,7 @@ const richTextHtml = copy
         [INLINES.HYPERLINK]: (node) => {
           const href = node.data.uri ?? '#';
           const label = readPlainText(node);
-          return `<a href="${href}" rel="noopener noreferrer">${label}</a>`;
+          return `<Text type="link" href="${href}" rel="noopener noreferrer">${label}</Text>`;
         },
         [BLOCKS.EMBEDDED_ENTRY]: (node) => {
           const contentType = node.data?.target?.sys?.contentType?.sys?.id ?? 'unknown';
@@ -59,9 +60,9 @@ const embeddedEntries =
     <section class={cn('flex flex-col', gapClassBySize[gap], className)}>
       <article class="rich-text" set:html={richTextHtml} />
       {embeddedEntries.length > 0 && (
-        <p class="text-small">
+        <Text type="small">
           Embedded entries detected. Map them through `Mapper.astro` where this component is used.
-        </p>
+        </Text>
       )}
     </section>
   )

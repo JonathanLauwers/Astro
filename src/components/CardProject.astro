@@ -22,13 +22,14 @@ interface Props {
 
 const { project, href, class: className } = Astro.props as Props;
 const { logo, theme, name, logos = [] } = project;
+console.log('project', project);
 ---
 
 <a
   href={href}
   style={`background-color:${theme};`}
   class:list={[
-    'relative aspect-square min-h-[220px] group flex h-full w-full items-center justify-center p-6 no-underline',
+    'group relative flex aspect-square h-full min-h-[220px] w-full items-center justify-center p-6 no-underline',
     className,
   ]}
 >
@@ -47,7 +48,7 @@ const { logo, theme, name, logos = [] } = project;
   >
     {
       logos.length > 0 && (
-        <div class="absolute bottom-4 left-2 right-2 flex flex-wrap justify-center gap-3">
+        <div class="absolute right-2 bottom-4 left-2 flex flex-wrap justify-center gap-3">
           {logos.map((logoItem) => {
             const src = logoItem?.src;
             if (!src) return null;
