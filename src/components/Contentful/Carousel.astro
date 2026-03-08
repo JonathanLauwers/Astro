@@ -1,0 +1,78 @@
+---
+import Mapper from './Mapper.astro';
+
+interface CarouselItem {
+  sys?: { id?: string };
+  [key: string]: any;
+}
+
+interface ContentCarouselFields {
+  items?: CarouselItem[];
+}
+
+interface Props {
+  data?: { fields?: ContentCarouselFields };
+  class?: string;
+}
+
+const { data, class: className = '' } = Astro.props as Props;
+
+const items = data?.fields?.items ?? [];
+---
+
+<div data-embla-root class:list={['relative', className]}>
+  <button
+    data-prev
+    class="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 text-slate-800 shadow disabled:opacity-40"
+    aria-label="Previous slide"
+    disabled
+  >
+    ←
+  </button>
+
+  <button
+    data-next
+    class="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 text-slate-800 shadow disabled:opacity-40"
+    aria-label="Next slide"
+  >
+    →
+  </button>
+
+  <div data-embla class="overflow-hidden">
+    <div class="flex touch-pan-y">
+      {
+        items.map((item) => (
+          <div class="min-w-0 shrink-0 grow-0 basis-full">
+            <Mapper data={item} additionalProps={{ maxHeight: 600, height: 600, width: 1200 }} />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</div>
+
+<script>
+  import EmblaCarousel from 'embla-carousel';
+
+  document.querySelectorAll('[data-embla-root]').forEach((root) => {
+    const viewport = root.querySelector('[data-embla]');
+    const prevBtn = root.querySelector('[data-prev]');
+    const nextBtn = root.querySelector('[data-next]');
+
+    if (viewport && prevBtn && nextBtn) {
+      const embla = EmblaCarousel(viewport, { loop: false, align: 'start' });
+
+      const updateButtons = () => {
+        prevBtn.toggleAttribute('disabled', !embla.canScrollPrev());
+        nextBtn.toggleAttribute('disabled', !embla.canScrollNext());
+      };
+
+      prevBtn.addEventListener('click', () => embla.scrollPrev());
+      nextBtn.addEventListener('click', () => embla.scrollNext());
+
+      embla.on('select', updateButtons);
+      embla.on('reInit', updateButtons);
+      updateButtons();
+    }
+  });
+</script>

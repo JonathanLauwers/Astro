@@ -1,0 +1,19 @@
+---
+import { documentToPlainTextString } from '@contentful/rich-text-plain-text-renderer';
+import type { Document } from '@contentful/rich-text-types';
+
+interface Props {
+  copy?: Document;
+  class?: string;
+  tag?: 'p' | 'span' | 'div' | 'h1' | 'h2' | 'h3' | 'h4';
+}
+
+const { copy, class: className = '', tag = 'p' } = Astro.props;
+
+if (!copy) return null;
+
+const text = documentToPlainTextString(copy);
+const Tag = tag;
+---
+
+<Tag class={className}>{text}</Tag>

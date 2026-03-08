@@ -1,0 +1,48 @@
+---
+import { Icon } from 'astro-icon/components';
+import RichTextPlain from './RichTextPlain.astro';
+import Text from '../Text.astro';
+import { Button } from '../ui/button';
+
+interface AuthorFields {
+  company?: string;
+  role?: string;
+  name?: string;
+}
+
+interface ContentRichTextFields {
+  copy?: string; // if your copy is HTML, this can be rendered with set:html
+}
+
+interface TestimonialFields {
+  author?: { fields?: AuthorFields };
+  copy?: { fields?: ContentRichTextFields };
+}
+
+interface Props {
+  data?: { fields?: TestimonialFields };
+  class?: string;
+}
+
+const { data, class: className = '' } = Astro.props;
+
+if (!data?.fields) return null;
+
+const { author, copy: rteCopy } = data.fields;
+const { copy = '' } = (rteCopy?.fields || {}) as ContentRichTextFields;
+const { company = '', role = '', name = '' } = (author?.fields || {}) as AuthorFields;
+---
+
+<div class:list={['relative mx-auto flex w-full max-w-[900px] flex-col gap-3 py-10', className]}>
+  <Icon name="carbon:quotes" class="absolute right-full top-8 md:top-0 size-24 text-orange-500" />
+
+  <RichTextPlain
+    copy={copy}
+    class="text-center text-xl font-light italic leading-relaxed md:text-3xl"
+  />
+
+  <Text tag="p" class="text-xl font-semibold self-end">{name}</Text>
+  <Text tag="p" class="text-sm text-slate-700 self-end">{role} @ {company}</Text>
+
+  <Button variant="outline">Read more</Button>
+</div>
