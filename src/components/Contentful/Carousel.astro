@@ -1,4 +1,6 @@
 ---
+import { Button } from '../ui/button';
+import { Icon } from 'astro-icon/components';
 import Mapper from './Mapper.astro';
 
 interface CarouselItem {
@@ -21,22 +23,23 @@ const items = data?.fields?.items ?? [];
 ---
 
 <div data-embla-root class:list={['relative', className]}>
-  <button
-    data-prev
-    class="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 text-slate-800 shadow disabled:opacity-40"
+  <Button
+    variant="ghost"
+    className="absolute top-1/2 right-full z-10 -translate-y-1/2 rounded-full"
     aria-label="Previous slide"
-    disabled
+    data-prev
   >
-    ←
-  </button>
+    <Icon name="carbon:chevron-left" />
+  </Button>
 
-  <button
-    data-next
-    class="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 px-3 py-2 text-slate-800 shadow disabled:opacity-40"
+  <Button
+    variant="ghost"
+    className="absolute top-1/2 left-full z-10 -translate-y-1/2 rounded-full"
     aria-label="Next slide"
+    data-next
   >
-    →
-  </button>
+    <Icon name="carbon:chevron-right" />
+  </Button>
 
   <div data-embla class="overflow-hidden">
     <div class="flex touch-pan-y">

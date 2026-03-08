@@ -4,9 +4,9 @@ import tailwindcss from '@tailwindcss/vite';
 
 import vercel from '@astrojs/vercel';
 
-import preact from '@astrojs/preact';
-
 import icon from 'astro-icon';
+
+import react from '@astrojs/react';
 
 // https://astro.build/config
 export default defineConfig({
@@ -16,11 +16,11 @@ export default defineConfig({
 
   adapter: vercel(),
   integrations: [
-    preact(),
     icon({
       include: {
         carbon: ['*'], // (Default) Loads entire Material Design Icon set
       },
     }),
+    react(),
   ],
 });
