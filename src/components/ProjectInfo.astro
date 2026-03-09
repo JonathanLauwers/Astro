@@ -1,0 +1,82 @@
+---
+import ContentfulImage from './ContentfulImage.astro';
+
+interface Role {
+  fields?: {
+    name?: string;
+  };
+}
+
+interface Technology {
+  sys?: {
+    id?: string;
+  };
+  fields?: {
+    name?: string;
+    logo?: any;
+  };
+}
+
+interface Props {
+  class?: string;
+  name: string;
+  roles: Role[];
+  technologies: Technology[];
+  website?: string;
+}
+
+const { class: className = '', name, roles = [], technologies = [], website } = Astro.props;
+
+const roleLabel = `Role${roles.length > 1 ? 's' : ''}`;
+const roleNames = roles
+  .map((role) => role?.fields?.name)
+  .filter(Boolean)
+  .join(', ');
+---
+
+<div class:list={['flex flex-col gap-8', className]}>
+  <div class="flex flex-col gap-3">
+    <p class="font-oswald text-sm font-bold uppercase">Client</p>
+    <p class="font-oswald">{name}</p>
+  </div>
+
+  <div class="flex flex-col gap-3">
+    <p class="font-oswald text-sm font-bold uppercase">{roleLabel}</p>
+    <p class="font-oswald">{roleNames}</p>
+  </div>
+
+  <div class="flex flex-col gap-3">
+    <p class="font-oswald text-sm font-bold uppercase">Technologies</p>
+
+    {
+      technologies.map((technology) => {
+        const techName = technology?.fields?.name;
+        const logo = technology?.fields?.logo;
+
+        return (
+          <div class="flex items-center gap-2" key={technology?.sys?.id}>
+            <div class="h-4 w-4">
+              <ContentfulImage data={logo} width={16} height={16} />
+            </div>
+            <p class="font-oswald">{techName}</p>
+          </div>
+        );
+      })
+    }
+  </div>
+
+  {
+    website && (
+      <div class="flex flex-col gap-3">
+        <a
+          href={website}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-oswald text-sm font-bold uppercase hover:underline"
+        >
+          Website
+        </a>
+      </div>
+    )
+  }
+</div>

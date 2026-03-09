@@ -1,0 +1,40 @@
+---
+import Text from './Text.astro';
+
+interface BreadcrumbItem {
+  href: string;
+  label: string;
+}
+
+interface Props {
+  class?: string;
+  breadcrumbs?: BreadcrumbItem[];
+}
+
+const { class: className = '', breadcrumbs = [] } = Astro.props;
+---
+
+<nav class:list={['flex flex-wrap items-center gap-2 py-4', className]} aria-label="Breadcrumb">
+  <Text type="breadcrumb" class="text-primary" tag="a" href="/">Home</Text>
+
+  {
+    breadcrumbs.map(({ href, label }, index) => {
+      const isLast = index + 1 === breadcrumbs.length;
+
+      return (
+        <>
+          <Text type="breadcrumb" tag="span">
+            |
+          </Text>
+          {isLast ? (
+            <Text type="breadcrumb">{label}</Text>
+          ) : (
+            <Text class="text-primary" type="breadcrumb" tag="a" href={href}>
+              {label}
+            </Text>
+          )}
+        </>
+      );
+    })
+  }
+</nav>

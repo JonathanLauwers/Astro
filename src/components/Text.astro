@@ -41,9 +41,8 @@ const {
   ...rest
 } = Astro.props as Props & Record<string, unknown>;
 const Tag = (tag ?? tagByType[type]) as TextTag;
-const classes = cn(classByType[type], className);
 ---
 
-<Tag class={classes} {...rest}>
+<Tag class:list={[classByType[type], className]} {...rest}>
   <slot />
 </Tag>

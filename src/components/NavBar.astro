@@ -23,7 +23,7 @@ const {
 } = Astro.props;
 ---
 
-<Header class="fixed top-0 right-0 left-0 z-50 transition-colors">
+<Header class="fixed top-0 right-0 left-0 z-50 px-8 transition-colors">
   <HeaderContent data-nav-root>
     <a href="/" class="*:transition-colors" data-nav-logo><Logo alt={brand} /></a>
     <HeaderActions class="ml-auto">
@@ -48,7 +48,6 @@ const {
     const links = root.querySelectorAll('[data-nav-link]');
     const logo = root.querySelector('[data-nav-logo]');
 
-    console.log('logo', logo);
     if (!header) return;
 
     const updateStyles = () => {

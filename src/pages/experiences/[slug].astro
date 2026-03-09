@@ -5,6 +5,10 @@ import type { TypePageProjectSkeleton } from '../../lib/__generated__/TypePagePr
 import SEO from '../../components/SEO.astro';
 import Mapper from '../../components/Contentful/Mapper.astro';
 import ProjectSummary from '../../components/Contentful/ProjectSummary.astro';
+import Hero from '@/components/Contentful/Hero.astro';
+import Breadcrumb from '@/components/breadcrumb.astro';
+import { handleContentfulPageDestination } from '@/lib/contentful';
+import { EXPERIENCES_ROUTE } from '@/lib/constants/navigation';
 
 export async function getStaticPaths() {
   const entries = await contentfulClient.getEntries<TypePageProjectSkeleton>({
@@ -20,11 +24,20 @@ export async function getStaticPaths() {
 
 const { page } = Astro.props;
 const fields = page.fields;
-console.log('fields', fields);
 ---
 
 <SEO title={fields.title} description={fields.description} />
 <Layout>
-  <ProjectSummary data={fields.project} />
+  <Hero data={fields.hero} />
+  <Breadcrumb
+    breadcrumbs={[
+      { label: 'Experiences', href: EXPERIENCES_ROUTE },
+      {
+        label: fields.title,
+        href: handleContentfulPageDestination(fields as ContentfulPage),
+      },
+    ]}
+  />
+  <ProjectSummary class="my-20" data={fields.project} />
   {fields.content?.map((item) => <Mapper data={item} key={item.sys.id} />)}
 </Layout>
