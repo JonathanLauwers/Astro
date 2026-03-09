@@ -85,7 +85,7 @@
   }
 
   .text-body {
-    @apply text-[0.875rem] leading-4.5 font-light text-slate-700 md:text-[1rem] md:leading-5.5;
+    @apply text-[0.875rem] leading-4.5 font-light md:text-[1rem] md:leading-5.5;
   }
 
   .text-link {
@@ -134,7 +134,7 @@
 
 :root {
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);

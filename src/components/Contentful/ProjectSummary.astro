@@ -38,17 +38,17 @@ const roleNames = roles
 <div class:list={['grid grid-cols-1 gap-x-8 gap-y-8 md:grid-cols-4', className]}>
   <div class="flex flex-col gap-8">
     <div class="flex flex-col gap-3">
-      <Text type="small" class="font-bold text-black uppercase">Client</Text>
-      <Text type="small">{name}</Text>
+      <Text class="font-oswald font-bold uppercase">Client</Text>
+      <Text class="font-oswald">{name}</Text>
     </div>
 
     <div class="flex flex-col gap-3">
-      <Text type="small" class="font-bold uppercase">{roleLabel}</Text>
-      <Text type="small">{roleNames}</Text>
+      <Text class="font-oswald font-bold uppercase">{roleLabel}</Text>
+      <Text class="font-oswald">{roleNames}</Text>
     </div>
 
     <div class="flex flex-col gap-3">
-      <Text type="small" class="font-bold uppercase">Technologies</Text>
+      <Text class="font-oswald font-bold uppercase">Technologies</Text>
 
       {
         technologies.map((technology) => {
@@ -58,7 +58,7 @@ const roleNames = roles
           return (
             <div class="flex items-center gap-2" key={technology?.sys?.id}>
               <Image data={logo} class="size-4" />
-              <Text type="small">{techName}</Text>
+              <Text class="font-oswald">{techName}</Text>
             </div>
           );
         })
@@ -67,11 +67,15 @@ const roleNames = roles
 
     {
       website && (
-        <div class="flex flex-col gap-3">
-          <Text type="link" href={website} target="_blank" rel="noopener noreferrer">
-            Website
-          </Text>
-        </div>
+        <Text
+          class="font-oswald text-primary font-bold uppercase"
+          href={website}
+          target="_blank"
+          rel="noopener noreferrer"
+          tag="a"
+        >
+          Website
+        </Text>
       )
     }
   </div>

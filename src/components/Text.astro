@@ -43,6 +43,6 @@ const {
 const Tag = (tag ?? tagByType[type]) as TextTag;
 ---
 
-<Tag class:list={[classByType[type], className]} {...rest}>
+<Tag class:list={['w-fit', classByType[type], className]} {...rest}>
   <slot />
 </Tag>
