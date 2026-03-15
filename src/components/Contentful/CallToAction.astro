@@ -1,0 +1,49 @@
+---
+import type { TypeContentCallToAction } from '../../lib/__generated__';
+import { handleContentfulPageDestination } from '../../lib/contentful';
+import Text from '../Text.astro';
+import { Icon } from 'astro-icon/components';
+
+type CtaType = 'h1' | 'h2' | 'h3' | 'h4' | 'menu' | 'link';
+type CtaColor = 'white' | 'primary' | 'black';
+
+interface Props {
+  data?: TypeContentCallToAction<'WITHOUT_UNRESOLVABLE_LINKS'>;
+  class?: string;
+  className?: string;
+  color?: CtaColor;
+  type?: CtaType;
+}
+
+const {
+  data,
+  class: classProp = '',
+  className = '',
+  color = 'primary',
+  type = 'link',
+} = Astro.props as Props;
+
+if (!data?.fields) return null;
+
+const { destination, icon, label } = data.fields;
+const destinationLabel =
+  (destination?.fields as { title?: string | undefined } | undefined)?.title ?? 'Read more';
+const href = destination ? handleContentfulPageDestination(destination as ContentfulPage) : '#';
+const iconName = icon?.fields?.name;
+const textColorClass = color === 'white' ? 'text-white' : color === 'black' ? 'text-black' : 'text-primary';
+---
+
+<Text
+  tag="a"
+  href={href}
+  type={type}
+  class:list={[
+    'inline-flex items-center gap-2 no-underline transition-opacity hover:opacity-80',
+    textColorClass,
+    classProp,
+    className,
+  ]}
+>
+  {iconName && <Icon name={iconName} aria-hidden="true" />}
+  <span>{label ?? destinationLabel}</span>
+</Text>

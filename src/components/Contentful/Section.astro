@@ -10,13 +10,17 @@ type ContentfulSectionProps = {
   className?: string;
 };
 
-const { data, className } = Astro.props as ContentfulSectionProps;
+const { data, className, ...additionalProps } = Astro.props as ContentfulSectionProps;
 const { content, gap, title, titlePosition } = data.fields;
 ---
 
 <section class={cn('flex flex-col gap-12 md:gap-16 py-20', className)}>
   {title && <SectionHeader title={title} position={titlePosition} />}
   <div>
-    {content?.map((data) => <Mapper data={data} key={data.sys.id} />)}
+    {
+      content?.map((data) => (
+        <Mapper data={data} key={data.sys.id} additionalProps={additionalProps} />
+      ))
+    }
   </div>
 </section>

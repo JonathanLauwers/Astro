@@ -5,9 +5,10 @@ import type { TypePageProjectSkeleton } from '../../lib/__generated__/TypePagePr
 import SEO from '../../components/SEO.astro';
 import Mapper from '../../components/Contentful/Mapper.astro';
 import ProjectSummary from '../../components/Contentful/ProjectSummary.astro';
+import ProjectRecommendations from '../../components/Contentful/ProjectRecommendations.astro';
 import Hero from '@/components/Contentful/Hero.astro';
 import Breadcrumb from '@/components/breadcrumb.astro';
-import { handleContentfulPageDestination } from '@/lib/contentful';
+import { getProjectRecommendations, handleContentfulPageDestination } from '@/lib/contentful';
 import { EXPERIENCES_ROUTE } from '@/lib/constants/navigation';
 
 export async function getStaticPaths() {
@@ -18,11 +19,14 @@ export async function getStaticPaths() {
 
   return entries.items.map((item) => ({
     params: { slug: item.fields.slug },
-    props: { page: item },
+    props: {
+      page: item,
+      recommendations: getProjectRecommendations(item, entries.items),
+    },
   }));
 }
 
-const { page } = Astro.props;
+const { page, recommendations = [] } = Astro.props;
 const fields = page.fields;
 ---
 
@@ -39,5 +43,14 @@ const fields = page.fields;
     ]}
   />
   <ProjectSummary class="my-20" data={fields.project} />
-  {fields.content?.map((item) => <Mapper data={item} key={item.sys.id} />)}
+  {
+    fields.content?.map((item) => (
+      <Mapper
+        data={item}
+        key={item.sys.id}
+        additionalProps={{ theme: fields.project?.fields?.theme }}
+      />
+    ))
+  }
+  <ProjectRecommendations recommendations={recommendations} />
 </Layout>

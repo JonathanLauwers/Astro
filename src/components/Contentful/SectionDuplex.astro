@@ -11,7 +11,7 @@ type ContentfulSectionDuplexProps = {
   className?: string;
 };
 
-const { data, className } = Astro.props as ContentfulSectionDuplexProps;
+const { data, className, ...additionalProps } = Astro.props as ContentfulSectionDuplexProps;
 const fields = data?.fields;
 
 const gapClasses = {
@@ -24,7 +24,7 @@ const gapClasses = {
 
 {
   fields && (
-    <section class={cn('flex flex-col gap-12 md:gap-16 py-20', gapClasses[fields.gap], className)}>
+    <section class={cn('flex flex-col gap-12 py-20 md:gap-16', gapClasses[fields.gap], className)}>
       {fields.title && <SectionHeader title={fields.title} position={fields.titlePosition} />}
 
       <div class="grid items-center gap-6 lg:grid-cols-8">
@@ -32,17 +32,18 @@ const gapClasses = {
           {fields.sectionA && (
             <Mapper
               data={fields.sectionA}
+              additionalProps={additionalProps}
               components={{
                 section: Section,
               }}
             />
           )}
         </div>
-        <div>
+        <div class="lg:col-span-3">
           {fields.sectionB && (
             <Mapper
-              className="lg:col-span-3"
               data={fields.sectionB}
+              additionalProps={additionalProps}
               components={{
                 section: Section,
               }}

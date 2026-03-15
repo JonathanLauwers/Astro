@@ -3,17 +3,17 @@ import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import { BLOCKS, INLINES, type Document, type TopLevelBlock } from '@contentful/rich-text-types';
 import type { TypeContentRichText } from '../../lib/__generated__';
 import { cn } from '../../lib/cn';
-import Text from '../Text.astro';
+import Mapper from './Mapper.astro';
 
 type Gap = 'none' | 'small' | 'medium' | 'large';
 
-type ContentfulRichTextProps = {
+type Props = {
   data?: TypeContentRichText<'WITHOUT_UNRESOLVABLE_LINKS'>;
   class?: string;
   gap?: Gap;
 };
 
-const { data, class: className, gap = 'medium' } = Astro.props as ContentfulRichTextProps;
+const { data, class: className, gap = 'medium' } = Astro.props;
 
 const fields = data?.fields;
 const copy = fields?.copy as Document | undefined;
@@ -28,29 +28,37 @@ const gapClassBySize: Record<Gap, string> = {
 const readPlainText = (node: { content?: Array<{ value?: string }> }) =>
   node.content?.map((item) => item.value ?? '').join('') ?? '';
 
+const escapeHtml = (value: string) =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+
 const richTextHtml = copy
   ? documentToHtmlString(copy, {
       renderNode: {
         [INLINES.HYPERLINK]: (node) => {
           const href = node.data.uri ?? '#';
-          const label = readPlainText(node);
-          return `<Text type="link" href="${href}" rel="noopener noreferrer">${label}</Text>`;
+          const label = escapeHtml(readPlainText(node));
+          const isExternal = href.startsWith('http://') || href.startsWith('https://');
+          const rel = isExternal ? ' rel="noopener noreferrer"' : '';
+          const target = isExternal ? ' target="_blank"' : '';
+          return `<a class="text-link" href="${escapeHtml(href)}"${target}${rel}>${label}</a>`;
         },
-        [BLOCKS.EMBEDDED_ENTRY]: (node) => {
-          const contentType = node.data?.target?.sys?.contentType?.sys?.id ?? 'unknown';
-          return `<div data-embedded-entry="${contentType}"></div>`;
-        },
-        [BLOCKS.EMBEDDED_ENTRY_INLINE]: (node) => {
-          const contentType = node.data?.target?.sys?.contentType?.sys?.id ?? 'unknown';
-          return `<span data-embedded-entry-inline="${contentType}"></span>`;
-        },
+        [BLOCKS.EMBEDDED_ENTRY]: () => '',
+        [BLOCKS.EMBEDDED_ENTRY_INLINE]: () => '',
       },
     })
   : '';
 
 const embeddedEntries =
   copy?.content
-    ?.filter((node): node is TopLevelBlock => node.nodeType === BLOCKS.EMBEDDED_ENTRY)
+    ?.filter(
+      (node): node is TopLevelBlock =>
+        node.nodeType === BLOCKS.EMBEDDED_ENTRY || node.nodeType === BLOCKS.EMBEDDED_ENTRY_INLINE
+    )
     .map((node) => node.data?.target)
     .filter(Boolean) ?? [];
 ---
@@ -59,11 +67,7 @@ const embeddedEntries =
   copy && (
     <section class={cn('flex flex-col', gapClassBySize[gap], className)}>
       <article class="rich-text" set:html={richTextHtml} />
-      {embeddedEntries.length > 0 && (
-        <Text type="small">
-          Embedded entries detected. Map them through `Mapper.astro` where this component is used.
-        </Text>
-      )}
+      {embeddedEntries.map((entry, index) => <Mapper data={entry} key={`embedded-${index}`} />)}
     </section>
   )
 }

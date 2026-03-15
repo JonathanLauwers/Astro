@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SEO from '../components/SEO.astro';
+import Hero from '../components/Contentful/Hero.astro';
+import Mapper from '../components/Contentful/Mapper.astro';
+import { contentfulClient } from '../lib/contentful';
+import type { TypePageContentSkeleton } from '../lib/__generated__/TypePageContent';
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<TypePageContentSkeleton>({
+    content_type: 'pageContent',
+    include: 6,
+  });
+
+  return entries.items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: { page: item },
+  }));
+}
+
+const { page } = Astro.props;
+const fields = page.fields;
+---
+
+<SEO title={fields.title} description={fields.description} />
+<Layout>
+  {fields.hero && <Hero data={fields.hero} />}
+  {fields.content?.map((item) => <Mapper data={item} key={item.sys.id} />)}
+</Layout>

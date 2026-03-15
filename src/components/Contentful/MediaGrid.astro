@@ -1,0 +1,269 @@
+---
+import type { TypeContentMediaGrid } from '../../lib/__generated__';
+import Image from './Image.astro';
+import { Button } from '../ui/button';
+import Text from '../Text.astro';
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  data?: TypeContentMediaGrid<'WITHOUT_UNRESOLVABLE_LINKS'>;
+  className?: string;
+  class?: string;
+  theme?: { value?: string };
+}
+
+const { data, className = '', class: classProp = '', theme } = Astro.props as Props;
+const items = data?.fields?.items ?? [];
+if (!items.length) return null;
+
+const bgColor = theme?.value ?? '#f3f4f6';
+const rootClass = [className, classProp].filter(Boolean).join(' ');
+
+const toAbsoluteUrl = (url?: string) => {
+  if (!url) return '';
+  return url.startsWith('http') ? url : `https:${url}`;
+};
+
+const imageMeta = items.map((item) => {
+  const fields = item?.fields;
+  const desktop = fields?.desktop?.fields;
+  const tablet = fields?.tablet?.fields ?? desktop;
+  const mobile = fields?.mobile?.fields ?? tablet;
+  return {
+    src:
+      toAbsoluteUrl(desktop?.file?.url) ||
+      toAbsoluteUrl(tablet?.file?.url) ||
+      toAbsoluteUrl(mobile?.file?.url),
+    alt: desktop?.title ?? tablet?.title ?? mobile?.title ?? '',
+  };
+});
+---
+
+<div data-media-grid-root class={rootClass}>
+  <div class="grid grid-cols-1 gap-4 md:mt-8 md:grid-cols-3">
+    {
+      items.map((item, index) => (
+        <Button
+          type="button"
+          variant="naked"
+          size="default"
+          data-grid-item
+          data-index={index}
+          data-src={imageMeta[index]?.src ?? ''}
+          data-alt={imageMeta[index]?.alt ?? ''}
+          class:list={[
+            'relative h-full w-auto overflow-hidden rounded-xl p-4 text-left transition-transform duration-200 hover:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black md:h-full md:p-6',
+            index === 0 && 'md:row-span-2',
+            index === 1 && 'md:col-span-2',
+          ]}
+          style={`background-color:${bgColor};`}
+          aria-label={`Open media item ${index + 1}`}
+        >
+          <Image data={item} width={500} height={500} class="h-full w-full object-contain" />
+        </Button>
+      ))
+    }
+  </div>
+
+  <div
+    data-lightbox
+    class="pointer-events-none fixed inset-0 z-50 hidden opacity-0 transition-opacity duration-200"
+    aria-hidden="true"
+  >
+    <Button
+      type="button"
+      variant="naked"
+      data-backdrop
+      class="absolute inset-0 h-auto! w-auto! rounded-none border-0 p-0! opacity-0 transition-opacity duration-200"
+      style="background-color: rgba(0, 0, 0, 0.7);"
+      aria-label="Close gallery"
+    />
+
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div
+        data-lightbox-panel
+        class="relative w-full max-w-5xl translate-y-4 scale-[0.98] opacity-0 transition-all duration-250"
+      >
+        <div data-lightbox-embla class="overflow-hidden">
+          <div class="flex touch-pan-y">
+            {
+              imageMeta.map((image, index) => (
+                <div
+                  class="flex min-h-[80vh] min-w-0 shrink-0 grow-0 basis-full items-center justify-center px-8 md:px-12"
+                  data-lightbox-slide
+                >
+                  {image.src ? (
+                    <img
+                      src={image.src}
+                      alt={image.alt}
+                      class="block max-h-[80vh] w-auto max-w-full rounded-lg object-contain"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                    />
+                  ) : (
+                    <div class="flex h-[50vh] w-full max-w-full items-center justify-center rounded-lg bg-black/10 text-white/80">
+                      Missing image
+                    </div>
+                  )}
+                </div>
+              ))
+            }
+          </div>
+        </div>
+        <Text data-counter type="small" class="mx-auto mt-3 w-full! text-center text-white!" />
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-sm"
+          data-close
+          class="absolute top-2 right-2 rounded-full border-white/80 bg-white/90 text-slate-900"
+          aria-label="Close"
+        >
+          <Icon name="carbon:close" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-sm"
+          data-prev
+          class="absolute top-1/2 -left-4 -translate-y-1/2 rounded-full border-white/80 bg-white/90 text-slate-900"
+          aria-label="Previous"
+        >
+          <Icon name="carbon:chevron-left" />
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-sm"
+          data-next
+          class="absolute top-1/2 -right-4 -translate-y-1/2 rounded-full border-white/80 bg-white/90 text-slate-900"
+          aria-label="Next"
+        >
+          <Icon name="carbon:chevron-right" />
+        </Button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import EmblaCarousel from 'embla-carousel';
+
+  document.querySelectorAll('[data-media-grid-root]').forEach((root) => {
+    const gridItems = Array.from(root.querySelectorAll('[data-grid-item]'));
+    const lightbox = root.querySelector('[data-lightbox]');
+    const viewport = root.querySelector('[data-lightbox-embla]');
+    const slides = Array.from(root.querySelectorAll('[data-lightbox-slide]'));
+    const counter = root.querySelector('[data-counter]');
+    const closeBtn = root.querySelector('[data-close]');
+    const backdrop = root.querySelector('[data-backdrop]');
+    const panel = root.querySelector('[data-lightbox-panel]');
+    const prevBtn = root.querySelector('[data-prev]');
+    const nextBtn = root.querySelector('[data-next]');
+
+    if (!(lightbox instanceof HTMLElement) || !(viewport instanceof HTMLElement)) return;
+
+    const embla = EmblaCarousel(viewport, { loop: true, align: 'center' });
+
+    let focusedIndex = -1;
+    let lastActiveElement = null;
+    let closeTimeout = null;
+
+    const updateCounter = () => {
+      if (!(counter instanceof HTMLElement)) return;
+      const selectedIndex = embla.selectedScrollSnap();
+      counter.textContent = `${selectedIndex + 1} / ${slides.length}`;
+    };
+
+    embla.on('select', updateCounter);
+    embla.on('reInit', updateCounter);
+
+    const openLightbox = (index) => {
+      if (closeTimeout) {
+        clearTimeout(closeTimeout);
+        closeTimeout = null;
+      }
+      focusedIndex = index;
+      lightbox.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        lightbox.classList.remove('pointer-events-none', 'opacity-0');
+        if (backdrop instanceof HTMLElement) {
+          backdrop.classList.remove('opacity-0');
+        }
+        if (panel instanceof HTMLElement) {
+          panel.classList.remove('opacity-0', 'scale-[0.98]', 'translate-y-4');
+        }
+      });
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      lastActiveElement = document.activeElement;
+      embla.reInit();
+      embla.scrollTo(index, true);
+      updateCounter();
+      if (closeBtn instanceof HTMLElement) closeBtn.focus();
+    };
+
+    const closeLightbox = () => {
+      lightbox.classList.add('pointer-events-none', 'opacity-0');
+      if (backdrop instanceof HTMLElement) {
+        backdrop.classList.add('opacity-0');
+      }
+      if (panel instanceof HTMLElement) {
+        panel.classList.add('opacity-0', 'scale-[0.98]', 'translate-y-4');
+      }
+      focusedIndex = -1;
+      lightbox.setAttribute('aria-hidden', 'true');
+
+      closeTimeout = setTimeout(() => {
+        lightbox.classList.add('hidden');
+        if (counter instanceof HTMLElement) {
+          counter.textContent = '';
+        }
+        document.body.style.overflow = '';
+        if (lastActiveElement instanceof HTMLElement) lastActiveElement.focus();
+      }, 220);
+    };
+
+    const goNext = () => {
+      if (focusedIndex < 0) return;
+      embla.scrollNext();
+    };
+
+    const goPrev = () => {
+      if (focusedIndex < 0) return;
+      embla.scrollPrev();
+    };
+
+    gridItems.forEach((item) => {
+      item.addEventListener('click', () => {
+        const index = Number(item.getAttribute('data-index') ?? '-1');
+        if (index < 0) return;
+        openLightbox(index);
+      });
+    });
+
+    closeBtn?.addEventListener('click', closeLightbox);
+    backdrop?.addEventListener('click', closeLightbox);
+    nextBtn?.addEventListener('click', goNext);
+    prevBtn?.addEventListener('click', goPrev);
+    panel?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const clickedImage = target.closest('img');
+      const clickedControl = target.closest('[data-close], [data-prev], [data-next]');
+      if (!clickedImage && !clickedControl) {
+        closeLightbox();
+      }
+    });
+
+    root.addEventListener('keydown', (event) => {
+      if (focusedIndex < 0) return;
+      if (event.key === 'Escape') closeLightbox();
+      if (event.key === 'ArrowRight') goNext();
+      if (event.key === 'ArrowLeft') goPrev();
+    });
+  });
+</script>

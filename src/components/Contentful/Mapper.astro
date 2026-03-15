@@ -8,6 +8,9 @@ import Testimonial from './Testimonial.astro';
 import Carousel from './Carousel.astro';
 import Hero from './Hero.astro';
 import Form from './Form.astro';
+import MediaGrid from './MediaGrid.astro';
+import Image from './Image.astro';
+import CallToAction from './CallToAction.astro';
 
 type ContentTypeId =
   | 'section'
@@ -29,7 +32,6 @@ type ContentModelMapperProps = {
 };
 
 const { data, additionalProps = {}, className } = Astro.props as ContentModelMapperProps;
-
 const contentType = data?.sys?.contentType?.sys?.id as ContentTypeId | undefined;
 const modelProps = { ...additionalProps, data, className };
 ---
@@ -53,6 +55,12 @@ const modelProps = { ...additionalProps, data, className };
     <Hero {...modelProps} />
   ) : contentType === 'contentForm' ? (
     <Form {...modelProps} />
+  ) : contentType === 'contentMediaGrid' ? (
+    <MediaGrid {...modelProps} />
+  ) : contentType === 'contentImage' ? (
+    <Image {...modelProps} />
+  ) : contentType === 'contentCallToAction' ? (
+    <CallToAction {...modelProps} />
   ) : (
     <div>{`Cannot find mapper for ${contentType ?? 'unknown'} content type`}</div>
   )

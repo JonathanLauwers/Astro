@@ -1,0 +1,58 @@
+---
+import CardProject from '@/components/CardProject.astro';
+import Text from '@/components/Text.astro';
+import Section from './Section.astro';
+import SectionHeader from '../SectionHeader.astro';
+
+interface RecommendationItem {
+  label: string;
+  page: any;
+}
+
+interface Props {
+  recommendations?: RecommendationItem[];
+  class?: string;
+}
+
+const { recommendations = [], class: className = '' } = Astro.props as Props;
+
+if (!recommendations.length) return null;
+---
+
+<section class:list={['flex flex-col gap-12 py-20 md:gap-16', className]}>
+  <SectionHeader title="More projects" />
+
+  <div class="grid grid-cols-1 md:grid-cols-3">
+    {
+      recommendations.map(({ label, page: recommendedPage }) => {
+        const recommendedFields = recommendedPage.fields;
+        const recommendedProject = recommendedFields.project?.fields;
+
+        return (
+          <div class="flex flex-col gap-3">
+            <Text type="small" class="font-oswald text-black/70 uppercase">
+              {label}
+            </Text>
+            <CardProject
+              href={`/experiences/${recommendedFields.slug}`}
+              project={{
+                logo: recommendedProject?.logo,
+                theme: recommendedProject?.theme?.value ?? '#000000',
+                name: recommendedProject?.name,
+                logos:
+                  recommendedProject?.technologies?.map((technology) => ({
+                    title: technology?.fields?.name,
+                    src:
+                      technology?.fields?.logo?.fields?.mobile?.fields?.file?.url ??
+                      technology?.fields?.logo?.fields?.tablet?.fields?.file?.url ??
+                      technology?.fields?.logo?.fields?.desktop?.fields?.file?.url ??
+                      '',
+                  })) ?? [],
+              }}
+            />
+          </div>
+        );
+      })
+    }
+  </div>
+</section>

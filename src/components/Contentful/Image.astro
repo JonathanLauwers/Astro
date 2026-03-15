@@ -72,7 +72,10 @@ const revealOnLoadJs =
 
 {
   fallbackUrl && (
-    <div class:list={[blurPlaceholder && 'relative block overflow-hidden']} data-blur-image-root>
+    <div
+      class:list={[blurPlaceholder && 'relative block h-full w-full overflow-hidden']}
+      data-blur-image-root
+    >
       {
         blurPlaceholder && lqipUrl && (
           <div
@@ -83,7 +86,7 @@ const revealOnLoadJs =
           />
         )
       }
-      <picture class:list={[blurPlaceholder && 'block']}>
+      <picture class:list={[blurPlaceholder && 'block h-full w-full']}>
       {desktopUrl && <source media="(min-width: 1024px)" srcset={desktopUrl} />}
       {tabletUrl && <source media="(min-width: 768px)" srcset={tabletUrl} />}
       <img
