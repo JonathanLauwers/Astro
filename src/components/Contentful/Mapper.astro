@@ -7,6 +7,7 @@ import SectionDuplex from './SectionDuplex.astro';
 import Testimonial from './Testimonial.astro';
 import Carousel from './Carousel.astro';
 import Hero from './Hero.astro';
+import Form from './Form.astro';
 
 type ContentTypeId =
   | 'section'
@@ -50,6 +51,8 @@ const modelProps = { ...additionalProps, data, className };
     <Carousel {...modelProps} />
   ) : contentType === 'contentHero' ? (
     <Hero {...modelProps} />
+  ) : contentType === 'contentForm' ? (
+    <Form {...modelProps} />
   ) : (
     <div>{`Cannot find mapper for ${contentType ?? 'unknown'} content type`}</div>
   )

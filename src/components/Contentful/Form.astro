@@ -1,0 +1,267 @@
+---
+import Text from '../Text.astro';
+import { Button } from '../ui/button';
+
+interface Props {
+  data?: any;
+  class?: string;
+}
+
+const { data, class: className = '' } = Astro.props;
+if (!data?.fields) return null;
+
+const fieldInputClass =
+  'w-full border-0 border-b border-black/40 bg-transparent px-0 py-1 text-black placeholder:text-slate-500 transition focus:border-black focus:outline-none';
+
+const fieldLabelClass = 'font-medium';
+const fieldErrorClass = 'hidden min-h-5 text-sm text-red-600';
+---
+
+<div class="relative">
+  <!-- Backdrop + loader -->
+  <div
+    id="form-backdrop"
+    class="pointer-events-none fixed inset-0 z-40 hidden bg-black/25"
+    aria-hidden="true"
+  >
+  </div>
+
+  <div
+    id="form-loader"
+    class="pointer-events-none fixed inset-0 z-50 hidden items-center justify-center"
+    aria-hidden="true"
+  >
+    <div class="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-800 shadow">
+      Sending...
+    </div>
+  </div>
+
+  <div class="mx-auto w-full max-w-6xl">
+    <Text type="h4" class="mb-4 text-[#b89272]!">Let's connect!</Text>
+
+    <Text id="form-error" type="body" class="mb-4 hidden font-medium! text-red-600!" />
+
+    <form id="contact-form" class:list={['space-y-8', className]} novalidate>
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-8">
+        <div class="space-y-3">
+          <div class="flex flex-col gap-1">
+            <input
+              id="name"
+              name="name"
+              type="text"
+              placeholder="Your beautiful name"
+              required
+              minlength="2"
+              class={fieldInputClass}
+            />
+            <Text tag="label" for="name" type="body" class={fieldLabelClass}>Name</Text>
+            <Text id="name-error" type="body" class={fieldErrorClass} />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="hello@world.com"
+              required
+              class={fieldInputClass}
+            />
+            <Text tag="label" for="email" type="body" class={fieldLabelClass}>Email</Text>
+            <Text id="email-error" type="body" class={fieldErrorClass} />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <input
+              id="topic"
+              name="topic"
+              type="text"
+              placeholder="Something cool, fun or nice"
+              required
+              minlength="2"
+              class={fieldInputClass}
+            />
+            <Text tag="label" for="topic" type="body" class={fieldLabelClass}>Topic</Text>
+            <Text id="topic-error" type="body" class={fieldErrorClass} />
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <textarea
+            id="message"
+            name="message"
+            placeholder="Your amazing message that will blow my mind!"
+            required
+            minlength="2"
+            rows="8"
+            class="h-full min-h-[162px] w-full border border-black/40 bg-transparent px-3 py-2 text-black transition placeholder:text-slate-500 focus:border-black focus:outline-none"
+          ></textarea>
+          <Text tag="label" for="message" type="body" class={fieldLabelClass}>Message</Text>
+          <Text id="message-error" type="body" class={fieldErrorClass} />
+        </div>
+      </div>
+
+      <Button
+        id="submit-btn"
+        type="submit"
+        variant="default"
+        size="lg"
+        class="flex justify-self-end"
+        disabled>Send</Button
+      >
+    </form>
+  </div>
+</div>
+
+<script>
+  import { actions } from 'astro:actions';
+
+  const form = document.getElementById('contact-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const errorEl = document.getElementById('form-error');
+  const backdrop = document.getElementById('form-backdrop');
+  const loader = document.getElementById('form-loader');
+
+  if (form && submitBtn && errorEl && backdrop && loader) {
+    let isSubmitting = false;
+    let success = false;
+    const touched = new Set();
+    const fieldErrors = {
+      name: document.getElementById('name-error'),
+      email: document.getElementById('email-error'),
+      topic: document.getElementById('topic-error'),
+      message: document.getElementById('message-error'),
+    };
+    const fieldErrorMessage = {
+      name: {
+        valueMissing: 'Please enter your name.',
+        tooShort: 'Name should be at least 2 characters.',
+      },
+      email: {
+        valueMissing: 'Please enter your email.',
+        typeMismatch: 'Please enter a valid email address.',
+      },
+      topic: {
+        valueMissing: 'Please enter a topic.',
+        tooShort: 'Topic should be at least 2 characters.',
+      },
+      message: {
+        valueMissing: 'Please enter a message.',
+        tooShort: 'Message should be at least 2 characters.',
+      },
+    };
+
+    const fields = ['name', 'email', 'topic', 'message']
+      .map((name) => form.elements.namedItem(name))
+      .filter(Boolean);
+
+    const setLoading = (loading) => {
+      isSubmitting = loading;
+      backdrop.classList.toggle('hidden', !loading);
+      loader.classList.toggle('hidden', !loading);
+      loader.classList.toggle('flex', loading);
+      updateButton();
+    };
+
+    const isValid = () => form.checkValidity();
+
+    const getFieldError = (field) => {
+      if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) return '';
+      const key = field.name;
+      const messages = fieldErrorMessage[key];
+      if (!messages) return field.validationMessage;
+
+      if (field.validity.valueMissing && messages.valueMissing) return messages.valueMissing;
+      if (field.validity.typeMismatch && messages.typeMismatch) return messages.typeMismatch;
+      if (field.validity.tooShort && messages.tooShort) return messages.tooShort;
+      return field.validationMessage;
+    };
+
+    const validateField = (field, showError = false) => {
+      if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) return true;
+
+      const isFieldValid = field.checkValidity();
+      const errorNode = fieldErrors[field.name];
+      const shouldShow = showError && !isFieldValid;
+
+      field.classList.toggle('border-red-600', !isFieldValid);
+      field.classList.toggle('focus:border-red-600', !isFieldValid);
+      field.classList.toggle('border-black/40', isFieldValid);
+      field.classList.toggle('focus:border-black', isFieldValid);
+      field.setAttribute('aria-invalid', String(!isFieldValid));
+
+      if (errorNode) {
+        errorNode.textContent = shouldShow ? getFieldError(field) : '';
+        errorNode.classList.toggle('hidden', !shouldShow);
+      }
+
+      return isFieldValid;
+    };
+
+    const updateButton = () => {
+      const hasTouched = touched.size > 0;
+      const canSubmit = !isSubmitting && isValid() && hasTouched;
+
+      submitBtn.disabled = !canSubmit;
+
+      if (success && touched.size === 0) {
+        submitBtn.textContent = 'Successfully sent!';
+        submitBtn.classList.remove('bg-[#d9bc9f]', 'text-white', 'hover:bg-[#c9a989]');
+        submitBtn.classList.add('bg-transparent', 'text-[#b89272]', 'ring-1', 'ring-[#b89272]');
+      } else {
+        submitBtn.textContent = isSubmitting ? 'Sending...' : 'Send';
+        submitBtn.classList.remove('bg-transparent', 'text-[#b89272]', 'ring-1', 'ring-[#b89272]');
+        submitBtn.classList.add('bg-[#d9bc9f]', 'text-white', 'hover:bg-[#c9a989]');
+      }
+    };
+
+    fields.forEach((field) => {
+      field.addEventListener('input', () => {
+        touched.add(field.name);
+        success = false;
+        validateField(field, true);
+        updateButton();
+      });
+      field.addEventListener('blur', () => {
+        touched.add(field.name);
+        validateField(field, true);
+        updateButton();
+      });
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const allValid = fields.every((field) => validateField(field, true));
+      if (!allValid || touched.size === 0 || isSubmitting) return;
+
+      errorEl.textContent = '';
+      errorEl.classList.add('hidden');
+      setLoading(true);
+
+      try {
+        const fd = new FormData(form);
+        const { error } = await actions.send(fd);
+        if (error) {
+          throw new Error(error.message || 'Unknown action error');
+        }
+
+        success = true;
+        form.reset();
+        touched.clear();
+      } catch (err) {
+        console.error('ContentfulForm Error submitting form', err);
+        errorEl.textContent =
+          err instanceof Error && err.message
+            ? err.message
+            : 'Woops! The form seems to be broken. Try again later?';
+        errorEl.classList.remove('hidden');
+      } finally {
+        setLoading(false);
+        updateButton();
+      }
+    });
+
+    updateButton();
+  }
+</script>
