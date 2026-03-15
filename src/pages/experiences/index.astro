@@ -1,0 +1,178 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SEO from '../../components/SEO.astro';
+import Hero from '../../components/Contentful/Hero.astro';
+import Breadcrumb from '../../components/breadcrumb.astro';
+import Text from '../../components/Text.astro';
+import Gallery from '../../components/Gallery.astro';
+import CardProject from '../../components/CardProject.astro';
+import Mapper from '../../components/Contentful/Mapper.astro';
+import { Button } from '../../components/ui/button';
+import { contentfulClient } from '../../lib/contentful';
+import { EXPERIENCES_ROUTE } from '../../lib/constants/navigation';
+import type {
+  TypePageProjectSkeleton,
+  TypePageStaticSkeleton,
+  TypeTechnologySkeleton,
+} from '../../lib/__generated__';
+
+const [pageProjectsResponse, technologiesResponse, staticPageResponse] = await Promise.all([
+  contentfulClient.getEntries<TypePageProjectSkeleton>({
+    content_type: 'pageProject',
+    include: 6,
+  }),
+  contentfulClient.getEntries<TypeTechnologySkeleton>({
+    content_type: 'technology',
+    include: 2,
+  }),
+  contentfulClient.getEntries<TypePageStaticSkeleton>({
+    content_type: 'pageStatic',
+    'fields.slug': 'experiences',
+    include: 6,
+    limit: 1,
+  }),
+]);
+
+const pageProjects = [...pageProjectsResponse.items].sort((a, b) =>
+  (a.fields.title ?? '').localeCompare(b.fields.title ?? '')
+);
+const technologies = [...technologiesResponse.items].sort((a, b) =>
+  (a.fields.name ?? '').localeCompare(b.fields.name ?? '')
+);
+const staticPage = staticPageResponse.items[0]?.fields;
+
+if (!staticPage) {
+  throw new Error('Could not find "experiences" static page in Contentful.');
+}
+
+const projectsSectionDefaultTitle = 'All Experiences';
+---
+
+<SEO title={staticPage.title} description={staticPage.description} />
+
+<Layout>
+  {staticPage.hero && <Hero data={staticPage.hero} />}
+  <div id="experiences-page">
+    <Breadcrumb breadcrumbs={[{ label: 'Experiences', href: EXPERIENCES_ROUTE }]} />
+
+    {
+      technologies.length > 0 && (
+        <section class="py-8 md:py-12">
+          <Text type="h4" class="mb-6">
+            Filter experiences by technology
+          </Text>
+          <div class="flex flex-wrap gap-3">
+            {technologies.map((technology) => (
+              <Button
+                type="button"
+                variant="outline"
+                class="rounded-full"
+                data-filter-id={technology.sys.id}
+                data-filter-name={technology.fields.name}
+                aria-pressed="false"
+              >
+                {technology.fields.name}
+              </Button>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <section class="py-8 md:py-12">
+      <Text
+        id="projects-section-title"
+        type="h2"
+        class="mb-6"
+        data-default-title={projectsSectionDefaultTitle}
+      >
+        {projectsSectionDefaultTitle}
+      </Text>
+
+      <Gallery>
+        {
+          pageProjects.map((pageProject) => {
+            const project = pageProject.fields.project?.fields;
+            const technologyIds =
+              project?.technologies
+                ?.map((technology) => technology?.sys?.id)
+                .filter((id): id is string => Boolean(id)) ?? [];
+
+            return (
+              <div
+                data-project-card
+                data-project-title={pageProject.fields.title}
+                data-tech-ids={technologyIds.join(',')}
+              >
+                <CardProject
+                  href={pageProject.fields.slug ? `/experiences/${pageProject.fields.slug}` : '#'}
+                  project={{
+                    logo: project?.logo,
+                    theme: project?.theme?.value ?? '#000000',
+                    name: project?.name,
+                    logos:
+                      project?.technologies?.map((technology) => ({
+                        title: technology?.fields?.name,
+                        src:
+                          technology?.fields?.logo?.fields?.mobile?.fields?.file?.url ??
+                          technology?.fields?.logo?.fields?.tablet?.fields?.file?.url ??
+                          technology?.fields?.logo?.fields?.desktop?.fields?.file?.url ??
+                          '',
+                      })) ?? [],
+                  }}
+                />
+              </div>
+            );
+          })
+        }
+      </Gallery>
+    </section>
+
+    {staticPage.content?.map((item) => <Mapper data={item} key={item.sys.id} />)}
+  </div>
+</Layout>
+
+<script>
+  const pageRoot = document.getElementById('experiences-page');
+  const titleEl = document.getElementById('projects-section-title');
+
+  if (pageRoot && titleEl) {
+    const buttons = Array.from(pageRoot.querySelectorAll('[data-filter-id]'));
+    const cards = Array.from(pageRoot.querySelectorAll('[data-project-card]'));
+    const defaultTitle = titleEl.getAttribute('data-default-title') || 'All Experiences';
+    let activeFilterId = '';
+
+    const setActiveStyles = (button, isActive) => {
+      button.setAttribute('aria-pressed', String(isActive));
+      button.classList.toggle('bg-black', isActive);
+      button.classList.toggle('text-white', isActive);
+      button.classList.toggle('border-black', isActive);
+    };
+
+    const applyFilter = (filterId) => {
+      activeFilterId = filterId;
+
+      let activeName = '';
+      buttons.forEach((button) => {
+        const isActive = button.getAttribute('data-filter-id') === activeFilterId;
+        setActiveStyles(button, isActive);
+        if (isActive) activeName = button.getAttribute('data-filter-name') || '';
+      });
+
+      cards.forEach((card) => {
+        const techIds = (card.getAttribute('data-tech-ids') || '').split(',').filter(Boolean);
+        const shouldShow = !activeFilterId || techIds.includes(activeFilterId);
+        card.classList.toggle('hidden', !shouldShow);
+      });
+
+      titleEl.textContent = activeName || defaultTitle;
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const id = button.getAttribute('data-filter-id') || '';
+        applyFilter(id === activeFilterId ? '' : id);
+      });
+    });
+  }
+</script>

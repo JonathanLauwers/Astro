@@ -27,6 +27,7 @@ interface Props {
   height?: number;
   priority?: boolean;
   maxHeight?: number;
+  blurPlaceholder?: boolean;
 }
 
 const {
@@ -36,7 +37,9 @@ const {
   height = 400,
   priority = false,
   maxHeight,
-} = Astro.props as Props;
+  blurPlaceholder = false,
+  ...rest
+} = Astro.props as Props & Record<string, unknown>;
 
 if (!data?.fields) return null;
 
@@ -58,11 +61,29 @@ const tabletUrl = toAbsoluteUrl(tabletFields.file?.url) ?? mobileUrl;
 const desktopUrl = toAbsoluteUrl(desktopFields.file?.url) ?? tabletUrl;
 const fallbackUrl = desktopUrl ?? tabletUrl ?? mobileUrl;
 const altText = desktopFields.title ?? tabletFields.title ?? mobileFields.title ?? '';
+const lqipUrl = fallbackUrl
+  ? `${fallbackUrl}${fallbackUrl.includes('?') ? '&' : '?'}w=64&q=20&fm=webp`
+  : undefined;
+const blurImageClass =
+  'opacity-0 blur-sm scale-[1.02] transition-[opacity,filter,transform] duration-500';
+const revealOnLoadJs =
+  "this.classList.remove('opacity-0','blur-sm','scale-[1.02]');this.classList.add('opacity-100');const p=this.closest('[data-blur-image-root]')?.querySelector('[data-blur-placeholder]');if(p){p.classList.add('opacity-0');}";
 ---
 
 {
   fallbackUrl && (
-    <picture>
+    <div class:list={[blurPlaceholder && 'relative block overflow-hidden']} data-blur-image-root>
+      {
+        blurPlaceholder && lqipUrl && (
+          <div
+            data-blur-placeholder
+            class="absolute inset-0 scale-110 bg-cover bg-center blur-2xl transition-opacity duration-500"
+            style={`background-image:url('${lqipUrl}');`}
+            aria-hidden="true"
+          />
+        )
+      }
+      <picture class:list={[blurPlaceholder && 'block']}>
       {desktopUrl && <source media="(min-width: 1024px)" srcset={desktopUrl} />}
       {tabletUrl && <source media="(min-width: 768px)" srcset={tabletUrl} />}
       <img
@@ -72,9 +93,12 @@ const altText = desktopFields.title ?? tabletFields.title ?? mobileFields.title 
         height={height}
         loading={loading}
         fetchpriority={fetchPriority}
-        class:list={[className || 'object-contain']}
+        class:list={[blurPlaceholder && blurImageClass, className || 'object-contain']}
         style={maxHeightStyle}
+        onload={blurPlaceholder ? revealOnLoadJs : undefined}
+        {...rest}
       />
-    </picture>
+      </picture>
+    </div>
   )
 }

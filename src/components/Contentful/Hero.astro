@@ -1,6 +1,5 @@
 ---
 import Text from '../Text.astro';
-import ContentfulImage from './ContentfulImage.astro';
 import Image from './Image.astro';
 
 interface HeroFields {
@@ -22,9 +21,15 @@ const { media, title } = data.fields;
 const darken = !!title;
 ---
 
-<div class:list={['relative mx-[calc((100vw-100%)/-2)] flex items-center', className]}>
-  <div class:list={['w-full', darken && 'brightness-[.7]']}>
-    <Image data={media} width={1750} priority />
+<div data-hero-root class:list={['relative mx-[calc((100vw-100%)/-2)] flex items-center', className]}>
+  <div class:list={['h-[80vh] w-full overflow-hidden', darken && 'brightness-[.7]']}>
+    <Image
+      class="h-full w-full object-cover"
+      data={media}
+      width={1750}
+      priority
+      blurPlaceholder
+    />
   </div>
 
   {
